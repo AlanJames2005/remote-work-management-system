@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { WorkProvider } from './context/WorkContext';
+import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
 import { motion } from 'framer-motion';
 import { Sun, Moon, LogOut, Menu } from 'lucide-react';
 import Login from './components/auth/Login';
@@ -40,7 +39,7 @@ const Layout = ({ children }) => {
                   <Menu className="h-6 w-6" />
                 </button>
                 <div className="flex-shrink-0 flex items-center">
-                  <Logo size="small" />
+                  <Logo size="small" layout="horizontal" />
                 </div>
               </div>
               
@@ -107,42 +106,36 @@ const Layout = ({ children }) => {
 
 const App = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <WorkProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route
-                path="/"
-                element={
-                  <PrivateRoute>
-                    <Layout>
-                      <div className="grid gap-6">
-                        <div className="grid grid-cols-1 gap-6">
-                          <TaskManager />
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
-                          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Calendar</h2>
-                          <CalendarView />
-                        </div>
-                        <Dashboard />
-                        <Teams />
-                        <FileSharing />
-                        <div className="h-[150px]">
-                          <TeamChat />
-                        </div>
-                      </div>
-                    </Layout>
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </Router>
-        </WorkProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <div className="grid gap-6">
+                  <div className="grid grid-cols-1 gap-6">
+                    <TaskManager />
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
+                    <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Calendar</h2>
+                    <CalendarView />
+                  </div>
+                  <Dashboard />
+                  <Teams />
+                  <FileSharing />
+                  <div className="h-[150px]">
+                    <TeamChat />
+                  </div>
+                </div>
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 

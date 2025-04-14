@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const WorkContext = createContext();
 
+export const useWork = () => {
+  const context = useContext(WorkContext);
+  if (context === undefined) {
+    throw new Error('useWork must be used within a WorkProvider');
+  }
+  return context;
+};
+
 export const WorkProvider = ({ children }) => {
   const [tasks, setTasks] = useState(() => {
     const savedTasks = localStorage.getItem('tasks');
@@ -39,6 +47,16 @@ export const WorkProvider = ({ children }) => {
     setTimeEntries([entry, ...timeEntries]);
   };
 
+  const updateTimeEntry = (entryId, updates) => {
+    setTimeEntries(timeEntries.map(entry =>
+      entry.id === entryId ? { ...entry, ...updates } : entry
+    ));
+  };
+
+  const deleteTimeEntry = (entryId) => {
+    setTimeEntries(timeEntries.filter(entry => entry.id !== entryId));
+  };
+
   return (
     <WorkContext.Provider value={{
       tasks,
@@ -46,17 +64,11 @@ export const WorkProvider = ({ children }) => {
       addTask,
       updateTask,
       deleteTask,
-      addTimeEntry
+      addTimeEntry,
+      updateTimeEntry,
+      deleteTimeEntry
     }}>
       {children}
     </WorkContext.Provider>
   );
-};
-
-export const useWork = () => {
-  const context = useContext(WorkContext);
-  if (context === undefined) {
-    throw new Error('useWork must be used within a WorkProvider');
-  }
-  return context;
 }; 

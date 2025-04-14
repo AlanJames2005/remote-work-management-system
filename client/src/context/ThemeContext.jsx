@@ -63,31 +63,27 @@ export const ThemeProvider = ({ children }) => {
   }, [layoutSettings]);
 
   const toggleDarkMode = () => {
-    setIsDarkMode(prev => !prev);
+    setIsDarkMode(!isDarkMode);
   };
 
   const updateThemeSettings = (newSettings) => {
-    setThemeSettings(prev => ({ ...prev, ...newSettings }));
+    setThemeSettings({ ...themeSettings, ...newSettings });
   };
 
   const updateLayoutSettings = (newSettings) => {
-    setLayoutSettings(prev => ({ ...prev, ...newSettings }));
-  };
-
-  const value = {
-    isDarkMode,
-    toggleDarkMode,
-    themeSettings,
-    updateThemeSettings,
-    layoutSettings,
-    updateLayoutSettings
+    setLayoutSettings({ ...layoutSettings, ...newSettings });
   };
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{
+      isDarkMode,
+      toggleDarkMode,
+      themeSettings,
+      updateThemeSettings,
+      layoutSettings,
+      updateLayoutSettings
+    }}>
       {children}
     </ThemeContext.Provider>
   );
-};
-
-export default ThemeContext; 
+}; 

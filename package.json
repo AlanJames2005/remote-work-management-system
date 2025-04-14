@@ -4,21 +4,25 @@
   "description": "A comprehensive web application for managing remote work",
   "main": "index.js",
   "scripts": {
+    "start": "cd server && npm start",
     "dev": "cd client && npm run dev",
     "build": "cd client && npm run build",
-    "preview": "cd client && npm run preview",
-    "lint": "cd client && npm run lint"
+    "install-all": "npm install && cd client && npm install && cd ../server && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "remote",
-    "work",
-    "management",
+    "remote-work",
+    "task-management",
+    "time-tracking",
+    "team-collaboration",
     "react",
-    "vite",
-    "tailwind"
+    "node",
+    "mongodb"
   ],
   "author": "",
-  "license": "ISC",
-  "dependencies": {},
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
   "devDependencies": {}
 }

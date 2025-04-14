@@ -1,146 +1,149 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { Clock, Play, Square, Trash2 } from 'lucide-react';
 import { useWork } from '../context/WorkContext';
-import { Play, Pause, Trash2, Clock, Calendar, AlertTriangle } from 'lucide-react';
 
 const TimeTracker = () => {
-  const [isClockedIn, setIsClockedIn] = useState(false);
-  const [clockInTime, setClockInTime] = useState(null);
-  const [elapsedTime, setElapsedTime] = useState('00:00:00');
-  const [timeEntries, setTimeEntries] = useState(() => {
-    const savedEntries = localStorage.getItem('timeEntries');
-    return savedEntries ? JSON.parse(savedEntries) : [];
-  });
-  const { user } = useAuth();
-  const { trackedTime, startTracking, stopTracking, deleteTimeEntry } = useWork();
+  const [isTracking, setIsTracking] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const { timeEntries, addTimeEntry, updateTimeEntry, deleteTimeEntry } = useWork();
 
   useEffect(() => {
-    localStorage.setItem('timeEntries', JSON.stringify(timeEntries));
-  }, [timeEntries]);
-
-  useEffect(() => {
-    let timer;
-    if (isClockedIn && clockInTime) {
-      timer = setInterval(() => {
-        const now = new Date();
-        const diff = now - new Date(clockInTime);
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setElapsedTime(
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-        );
+    let interval;
+    if (isTracking) {
+      interval = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
       }, 1000);
     }
-    return () => clearInterval(timer);
-  }, [isClockedIn, clockInTime]);
+    return () => clearInterval(interval);
+  }, [isTracking]);
 
-  const handleClockIn = () => {
-    const now = new Date();
-    setClockInTime(now);
-    setIsClockedIn(true);
-  };
+  const startTracking = () => {
+    // Check for overlapping entries
+    const hasActiveEntry = timeEntries.some(entry => 
+      entry.status === 'active' && 
+      new Date(entry.clockIn).toDateString() === new Date().toDateString()
+    );
 
-  const handleClockOut = () => {
-    const now = new Date();
-    const entry = {
-      id: Date.now(),
-      userId: user?.email || 'anonymous',
-      clockIn: clockInTime,
-      clockOut: now,
-      duration: now - new Date(clockInTime),
-      date: now.toISOString().split('T')[0]
-    };
-    setTimeEntries([entry, ...timeEntries]);
-    setIsClockedIn(false);
-    setClockInTime(null);
-    setElapsedTime('00:00:00');
-  };
-
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDuration = (ms) => {
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this time entry?')) {
-      setTimeEntries(timeEntries.filter(entry => entry.id !== id));
+    if (hasActiveEntry) {
+      alert('You already have an active time entry for today');
+      return;
     }
+
+    const newEntry = {
+      id: Date.now().toString(),
+      clockIn: new Date(),
+      notes: 'Started work session',
+      status: 'active'
+    };
+    addTimeEntry(newEntry);
+    setIsTracking(true);
+    setElapsedTime(0);
+  };
+
+  const stopTracking = () => {
+    const activeEntry = timeEntries.find(entry => entry.status === 'active');
+    if (!activeEntry) {
+      alert('No active time entry found');
+      return;
+    }
+
+    const updatedEntry = {
+      ...activeEntry,
+      clockOut: new Date(),
+      status: 'completed',
+      duration: Math.floor((new Date() - new Date(activeEntry.clockIn)) / 1000)
+    };
+    updateTimeEntry(activeEntry.id, updatedEntry);
+    setIsTracking(false);
+  };
+
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleString();
   };
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Time Tracker</h2>
-      
-      <div className="mb-8 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-            <p className={`text-lg font-semibold ${isClockedIn ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {isClockedIn ? 'Clocked In' : 'Clocked Out'}
-            </p>
+    <div className="p-6 max-w-4xl mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Time Tracker
+          </h2>
+          <div className="text-3xl font-mono text-gray-800 dark:text-white">
+            {formatTime(elapsedTime)}
           </div>
-          {isClockedIn && (
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Time Elapsed</p>
-              <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{elapsedTime}</p>
-            </div>
-          )}
         </div>
-        
-        <button
-          onClick={isClockedIn ? handleClockOut : handleClockIn}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-            isClockedIn
-              ? 'bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600'
-              : 'bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600'
-          }`}
-        >
-          {isClockedIn ? 'Clock Out' : 'Clock In'}
-        </button>
+
+        <div className="flex justify-center">
+          <button
+            onClick={isTracking ? stopTracking : startTracking}
+            className={`flex items-center px-6 py-3 rounded-lg text-white font-semibold ${
+              isTracking 
+                ? 'bg-red-500 hover:bg-red-600' 
+                : 'bg-green-500 hover:bg-green-600'
+            }`}
+          >
+            {isTracking ? (
+              <>
+                <Square className="mr-2" size={20} />
+                Stop Tracking
+              </>
+            ) : (
+              <>
+                <Play className="mr-2" size={20} />
+                Start Tracking
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Time Entries</h3>
-        <div className="space-y-4">
-          {timeEntries.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-4">No time entries found</p>
-          ) : (
-            timeEntries.map(entry => (
-              <div
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+          Recent Time Entries
+        </h3>
+        {timeEntries.length > 0 ? (
+          <div className="space-y-4">
+            {timeEntries.map((entry) => (
+              <div 
                 key={entry.id}
-                className="flex items-center justify-between p-4 border rounded-md dark:border-gray-700"
+                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
               >
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{entry.date}</p>
-                  <p className="text-gray-900 dark:text-white">
-                    {formatTime(entry.clockIn)} - {formatTime(entry.clockOut)}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Duration: {formatDuration(entry.duration)}
-                  </p>
-                </div>
                 <div className="flex items-center space-x-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {entry.userId}
-                  </p>
-                  <button
-                    onClick={() => handleDelete(entry.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 dark:text-gray-500 dark:hover:text-red-400"
-                    title="Delete time entry"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {formatDate(entry.clockIn)}
+                    </p>
+                    {entry.clockOut && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Duration: {formatTime(entry.duration)}
+                      </p>
+                    )}
+                  </div>
                 </div>
+                <button
+                  onClick={() => deleteTimeEntry(entry.id)}
+                  className="p-2 text-red-500 hover:text-red-600"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400 text-center">
+            No time entries yet
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,24 @@
+{
+  "name": "remote-work-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive web application for managing remote work",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview",
+    "lint": "cd client && npm run lint"
+  },
+  "keywords": [
+    "remote",
+    "work",
+    "management",
+    "react",
+    "vite",
+    "tailwind"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}

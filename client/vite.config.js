@@ -24,8 +24,12 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           ui: ['framer-motion', 'lucide-react'],
         },
+        format: 'es',
+        entryFileNames: '[name]-[hash].js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: '[name]-[hash].[ext]'
       },
     },
   },
-  base: './',
+  base: '/',
 })

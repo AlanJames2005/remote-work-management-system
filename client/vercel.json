@@ -7,6 +7,15 @@
   ],
   "headers": [
     {
+      "source": "/src/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
+    },
+    {
       "source": "/(.*).js",
       "headers": [
         {
@@ -17,6 +26,15 @@
     },
     {
       "source": "/(.*).mjs",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
+    },
+    {
+      "source": "/(.*).jsx",
       "headers": [
         {
           "key": "Content-Type",

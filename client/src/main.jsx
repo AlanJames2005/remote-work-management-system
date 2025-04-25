@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ThemeProvider>
       <AuthProvider>
         <WorkProvider>
-          <App />
+    <App />
         </WorkProvider>
       </AuthProvider>
     </ThemeProvider>
